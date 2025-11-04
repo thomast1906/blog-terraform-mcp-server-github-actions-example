@@ -64,6 +64,18 @@ jobs:
 
       - name: Terraform Plan (local only)
         run: |
+          # Create a mock credentials file for local validation
+          mkdir -p ~/.azure
+          echo '{}' > ~/.azure/credentials.json
+          
+          # Set environment variables for local validation
+          export ARM_SKIP_PROVIDER_REGISTRATION=true
+          export ARM_USE_CLI=false
+          export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+          export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
+          export ARM_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+          export ARM_CLIENT_SECRET="mock-secret"
+          
           terraform plan -out=tfplan.binary -input=false || true
           if [ -f tfplan.binary ]; then
             terraform show -json tfplan.binary > tfplan.json
