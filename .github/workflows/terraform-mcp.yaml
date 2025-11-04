@@ -128,32 +128,21 @@ jobs:
                       
                       print(f"\n🔍 Validating {len(resources)} resource changes with MCP...")
                       
-                      # Validate each resource type - use correct tool name
+                      # Validate each resource type using search
                       for resource in resources:
                           try:
                               # Extract provider from resource type (e.g., "azurerm_resource_group" -> "azurerm")
                               provider = resource['type'].split('_')[0] if '_' in resource['type'] else resource['type']
                               
-                              # Get provider details to validate it exists
+                              # Search for provider to validate it exists
                               result = await session.call_tool(
-                                  "get_provider_details",
-                                  arguments={
-                                      "provider": f"hashicorp/{provider}",
-                                      "service": resource['type']
-                                  }
+                                  "search_providers",
+                                  arguments={"query": provider}
                               )
-                              print(f"✅ {resource['type']} - Provider documentation found")
+                              print(f"✅ {resource['type']} - Provider '{provider}' found in registry")
                               
                           except Exception as e:
-                              # If provider lookup fails, try searching
-                              try:
-                                  search_result = await session.call_tool(
-                                      "search_providers",
-                                      arguments={"query": provider}
-                                  )
-                                  print(f"⚠️  {resource['type']} - Provider found via search")
-                              except:
-                                  print(f"❌ {resource['type']} - Validation failed: {e}")
+                              print(f"❌ {resource['type']} - Validation failed: {e}")
                       
                       # Use GitHub Models for AI analysis
                       token = os.getenv('GITHUB_TOKEN')
