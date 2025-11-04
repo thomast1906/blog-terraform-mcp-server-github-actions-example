@@ -12,10 +12,14 @@ permissions:
   id-token: write
 
 jobs:
+  inference:
+    permissions:
+      models: read
+      contents: read
+      contents: read
   validate:
     name: Validate Terraform with MCP
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
