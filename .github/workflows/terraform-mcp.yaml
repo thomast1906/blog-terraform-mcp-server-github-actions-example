@@ -128,18 +128,18 @@ jobs:
                       
                       print(f"\n🔍 Validating {len(resources)} resource changes with MCP...")
                       
-                      # Validate each resource type using search
+                      # Validate each resource type using get_latest_provider_version
                       for resource in resources:
                           try:
                               # Extract provider from resource type (e.g., "azurerm_resource_group" -> "azurerm")
                               provider = resource['type'].split('_')[0] if '_' in resource['type'] else resource['type']
                               
-                              # Search for provider to validate it exists
+                              # Get latest provider version to validate it exists
                               result = await session.call_tool(
-                                  "search_providers",
-                                  arguments={"provider_name": provider}
+                                  "get_latest_provider_version",
+                                  arguments={"provider_name": f"hashicorp/{provider}"}
                               )
-                              print(f"✅ {resource['type']} - Provider '{provider}' found in registry")
+                              print(f"✅ {resource['type']} - Provider 'hashicorp/{provider}' validated")
                               
                           except Exception as e:
                               print(f"❌ {resource['type']} - Validation failed: {e}")
