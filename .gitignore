@@ -26,4 +26,3 @@ terraform.rc
 # Ignore plan files
 *.tfplan
 *.tfplan.binary
-tfplan.json
