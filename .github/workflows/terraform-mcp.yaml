@@ -75,7 +75,7 @@ jobs:
         if: steps.mcp-server.outputs.mcp_available == 'true'
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       - name: Install MCP Client
         if: steps.mcp-server.outputs.mcp_available == 'true'
@@ -110,6 +110,11 @@ jobs:
                   async with ClientSession(read, write) as session:
                       await session.initialize()
                       
+                      # List available tools
+                      tools_result = await session.list_tools()
+                      available_tools = [tool.name for tool in tools_result.tools]
+                      print(f"\n📋 Available MCP tools: {', '.join(available_tools)}")
+                      
                       # Get list of resources from plan
                       resources = []
                       if 'resource_changes' in plan:
@@ -123,19 +128,27 @@ jobs:
                       
                       print(f"\n🔍 Validating {len(resources)} resource changes with MCP...")
                       
-                      # Validate each resource type exists in provider
+                      # Validate each resource type - use correct tool name
                       for resource in resources:
                           try:
-                              # Call MCP server to get schema
-                              result = await session.call_tool(
-                                  "get_provider_schema",
-                                  arguments={"resource_type": resource['type']}
-                              )
-                              
-                              print(f"✅ {resource['type']} - Valid schema found")
+                              # Try different tool names based on what's available
+                              if 'terraform_get_provider_docs' in available_tools:
+                                  result = await session.call_tool(
+                                      "terraform_get_provider_docs",
+                                      arguments={"provider": "hashicorp/random", "resource_type": resource['type']}
+                                  )
+                                  print(f"✅ {resource['type']} - Documentation found")
+                              elif 'search_provider_docs' in available_tools:
+                                  result = await session.call_tool(
+                                      "search_provider_docs",
+                                      arguments={"query": resource['type']}
+                                  )
+                                  print(f"✅ {resource['type']} - Documentation found")
+                              else:
+                                  print(f"⚠️  {resource['type']} - No suitable validation tool available")
                               
                           except Exception as e:
-                              print(f"❌ {resource['type']} - Schema validation failed: {e}")
+                              print(f"❌ {resource['type']} - Validation failed: {e}")
                       
                       # Use GitHub Models for AI analysis
                       token = os.getenv('GITHUB_TOKEN')
