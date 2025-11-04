@@ -167,6 +167,10 @@ jobs:
                               
                               ai_response = response.json()
                               print(f"\n{ai_response['choices'][0]['message']['content']}")
+                              
+                              # Save AI response for PR comment
+                              with open('ai_analysis.txt', 'w') as f:
+                                  f.write(ai_response['choices'][0]['message']['content'])
                           except Exception as e:
                               print(f"⚠️  AI analysis failed: {e}")
                       
@@ -180,6 +184,15 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
+            
+            let aiAnalysis = '';
+            try {
+              aiAnalysis = fs.readFileSync('ai_analysis.txt', 'utf8');
+            } catch (error) {
+              aiAnalysis = 'AI analysis was not available for this run.';
+            }
+            
             const comment = `## 🔍 Terraform MCP Validation Complete
             
             The Terraform plan has been validated using HashiCorp's official MCP Server.
@@ -188,6 +201,11 @@ jobs:
             ✅ Configuration syntax verified
             ✅ AI-enhanced analysis completed via GitHub Models
             
+            ### 🤖 AI Analysis
+            
+            ${aiAnalysis}
+            
+            ---
             *Powered by HashiCorp Terraform MCP Server & GitHub Models*`;
             
             github.rest.issues.createComment({
