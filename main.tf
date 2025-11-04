@@ -1,5 +1,8 @@
 provider "azurerm" {
   features {}
+  
+  # Skip provider registration for local validation
+  skip_provider_registration = true
 }
 
 # Resource Group
