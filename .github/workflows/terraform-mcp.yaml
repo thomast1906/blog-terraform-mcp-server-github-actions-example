@@ -131,24 +131,29 @@ jobs:
                       # Validate each resource type - use correct tool name
                       for resource in resources:
                           try:
-                              # Try different tool names based on what's available
-                              if 'terraform_get_provider_docs' in available_tools:
-                                  result = await session.call_tool(
-                                      "terraform_get_provider_docs",
-                                      arguments={"provider": "hashicorp/random", "resource_type": resource['type']}
-                                  )
-                                  print(f"✅ {resource['type']} - Documentation found")
-                              elif 'search_provider_docs' in available_tools:
-                                  result = await session.call_tool(
-                                      "search_provider_docs",
-                                      arguments={"query": resource['type']}
-                                  )
-                                  print(f"✅ {resource['type']} - Documentation found")
-                              else:
-                                  print(f"⚠️  {resource['type']} - No suitable validation tool available")
+                              # Extract provider from resource type (e.g., "azurerm_resource_group" -> "azurerm")
+                              provider = resource['type'].split('_')[0] if '_' in resource['type'] else resource['type']
+                              
+                              # Get provider details to validate it exists
+                              result = await session.call_tool(
+                                  "get_provider_details",
+                                  arguments={
+                                      "provider": f"hashicorp/{provider}",
+                                      "service": resource['type']
+                                  }
+                              )
+                              print(f"✅ {resource['type']} - Provider documentation found")
                               
                           except Exception as e:
-                              print(f"❌ {resource['type']} - Validation failed: {e}")
+                              # If provider lookup fails, try searching
+                              try:
+                                  search_result = await session.call_tool(
+                                      "search_providers",
+                                      arguments={"query": provider}
+                                  )
+                                  print(f"⚠️  {resource['type']} - Provider found via search")
+                              except:
+                                  print(f"❌ {resource['type']} - Validation failed: {e}")
                       
                       # Use GitHub Models for AI analysis
                       token = os.getenv('GITHUB_TOKEN')
