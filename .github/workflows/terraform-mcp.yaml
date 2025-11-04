@@ -16,7 +16,6 @@ jobs:
     permissions:
       models: read
       contents: read
-      contents: read
   validate:
     name: Validate Terraform with MCP
     runs-on: ubuntu-latest
