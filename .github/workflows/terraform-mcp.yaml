@@ -137,7 +137,7 @@ jobs:
                               # Search for provider to validate it exists
                               result = await session.call_tool(
                                   "search_providers",
-                                  arguments={"query": provider}
+                                  arguments={"provider_name": provider}
                               )
                               print(f"✅ {resource['type']} - Provider '{provider}' found in registry")
                               
